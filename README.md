@@ -136,14 +136,21 @@ CONFIG = {
 
     # Display
     "PHOSPHOR":          "amber",          # "amber" or "green"
-    "FULLSCREEN":        False,            # True for kiosk/in-car
-    "WINDOW_W":          900,
-    "WINDOW_H":          640,
+    # Set FULLSCREEN to True for Raspberry Pi kiosk / in-car use.
+    # Press Escape to exit fullscreen back to a window at any time.
+    "FULLSCREEN":        False,
+    "WINDOW_W":          900,             # Ignored in fullscreen mode
+    "WINDOW_H":          640,             # Ignored in fullscreen mode
     "SOUND":             True,
 
     # Background dispatch simulation
     "AUTO_DISPATCH":     True,
     "DISPATCH_INTERVAL": 45,              # Seconds between simulated calls
+
+    # Off Duty / shutdown
+    # When True, the OFF DUTY button requires a second press within 3 seconds
+    # to confirm before the program exits. Set False to exit on first press.
+    "CONFIRM_OFF_DUTY":  True,
 
     # Demo mode
     "DEMO_MODE":         True,            # Auto-run scenario after boot
@@ -154,7 +161,49 @@ CONFIG = {
 
 ---
 
-## Demo Mode Details
+## Full-Screen Mode
+
+Set `"FULLSCREEN": True` in CONFIG to run the terminal in kiosk mode — no title bar, no window chrome, filling the entire display. This is the recommended setting for an in-car Raspberry Pi installation.
+
+```python
+"FULLSCREEN": True    # Fills the entire screen — best for in-car Pi use
+"FULLSCREEN": False   # Windowed mode — best for development / desktop use
+```
+
+**Keyboard shortcuts for fullscreen:**
+
+| Key | Action |
+|---|---|
+| `Escape` | Exit fullscreen → return to windowed mode |
+| `Escape` *(in windowed mode)* | Return to Main Menu |
+
+To re-enter fullscreen after pressing Escape, either restart the program or toggle the setting and relaunch.
+
+---
+
+## Off Duty — Shutdown
+
+The **OFF DUTY** button is always visible in the top-right corner of the bezel. Pressing it broadcasts a **10-42 End of Tour** message, sets the unit status to **10-7 Out of Service**, and shuts the program down after a brief pause.
+
+### Confirmation mode (default)
+
+When `"CONFIRM_OFF_DUTY": True`, the button requires a second press within **3 seconds** to prevent accidental shutdown:
+
+1. First press: button turns red and displays `CONFIRM?` — a 3-second countdown begins
+2. Second press within 3 seconds: 10-42 is broadcast and the program exits
+3. No second press / any other key typed: confirmation is cancelled, button resets
+
+### Immediate mode
+
+```python
+"CONFIRM_OFF_DUTY": False   # Exits on first press with no confirmation
+```
+
+### Keyboard shortcut
+
+`Ctrl+D` triggers Off Duty from the keyboard — useful when running in fullscreen without a mouse.
+
+---
 
 ### What it demonstrates
 

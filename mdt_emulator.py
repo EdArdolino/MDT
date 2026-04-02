@@ -35,12 +35,20 @@ CONFIG = {
     "TERMINAL_ID":  "MDT-9100T-0042",
     "CAD_SERVER":   "DISPATCH-1",
     "PHOSPHOR":     "amber",             # "amber" or "green"
+    # ── Display / window ───────────────────────────────────────────────
+    # Set FULLSCREEN to True for Raspberry Pi kiosk / in-car use.
+    # The window will fill the entire screen with no title bar or borders.
+    # Press Escape at any time to exit full-screen mode back to a window.
     "FULLSCREEN":   False,
-    "WINDOW_W":     900,
-    "WINDOW_H":     640,
+    "WINDOW_W":     900,                 # Window width  (ignored in fullscreen)
+    "WINDOW_H":     640,                 # Window height (ignored in fullscreen)
     "SCANLINES":    True,
     "CRT_EFFECT":   True,
     "SOUND":        True,
+    # ── Off Duty / shutdown ─────────────────────────────────────────────
+    # When True, the OFF DUTY button requires a second press within 3 seconds
+    # to confirm before the program exits.  Set False to exit on first press.
+    "CONFIRM_OFF_DUTY": True,
     "AUTO_DISPATCH": True,               # Simulate incoming dispatch calls
     "DISPATCH_INTERVAL": 45,            # Seconds between simulated dispatches
     # ── Demo Mode ──────────────────────────────────────────────────────
@@ -607,6 +615,7 @@ class MDT9100T(tk.Tk):
         self.hist_idx        = -1
         self.unread_count    = 0
         self.demo_running    = False      # True while demo scenario is active
+        self.off_duty_pending = False     # True when waiting for Off Duty confirmation
 
         # Fonts  (use a monospace font for authentic terminal look)
         self._load_fonts()
@@ -652,16 +661,32 @@ class MDT9100T(tk.Tk):
         self.bezel = tk.Frame(self, bg=P["bezel"], padx=16, pady=12)
         self.bezel.pack(fill="both", expand=True)
 
-        # Motorola branding bar
+        # ── Top branding / control bar ───────────────────────────────
         brand = tk.Frame(self.bezel, bg=P["bezel_dark"], height=28)
         brand.pack(fill="x", pady=(0, 6))
         brand.pack_propagate(False)
+
         tk.Label(brand, text="MOTOROLA",
                  bg=P["bezel_dark"], fg=P["fg_dim"],
                  font=self.font_key).pack(side="left", padx=10, pady=4)
         tk.Label(brand, text=f"MDT 9100-T  ●  {CONFIG['AGENCY']}  ●  {CONFIG['TERMINAL_ID']}",
                  bg=P["bezel_dark"], fg=P["fg_dim"],
-                 font=self.font_small).pack(side="right", padx=10, pady=4)
+                 font=self.font_small).pack(side="left", padx=6, pady=4)
+
+        # ── OFF DUTY button — always visible top-right ───────────────
+        # A second press within 3 s confirms and exits (if CONFIRM_OFF_DUTY is True)
+        self.off_duty_btn = tk.Button(
+            brand,
+            text="OFF DUTY",
+            command=self._off_duty_pressed,
+            bg=P["bezel_dark"], fg=P["fg_dim"],
+            activebackground="#552200", activeforeground=P["fg_alert"],
+            font=self.font_key,
+            relief="raised", bd=1,
+            padx=8, pady=1,
+            cursor="hand2",
+        )
+        self.off_duty_btn.pack(side="right", padx=10, pady=3)
 
     # ─────────────────────────────────────────
     #  SCREEN AREA
@@ -875,7 +900,7 @@ class MDT9100T(tk.Tk):
         self.entry.bind("<Return>",    self._on_enter)
         self.entry.bind("<Up>",        self._hist_up)
         self.entry.bind("<Down>",      self._hist_down)
-        self.entry.bind("<Escape>",    lambda e: self._fkey_main())
+        self.entry.bind("<Escape>",    self._escape_pressed)
         self.bind("<F1>",  lambda e: self._fkey_ack())       # ACK
         self.bind("<F2>",  lambda e: self._fkey_messages())  # MSGS
         self.bind("<F3>",  lambda e: self._set_status("10-97","ON SCENE","warn"))  # SCENE
@@ -890,6 +915,8 @@ class MDT9100T(tk.Tk):
         self.bind("<F12>", lambda e: self._fkey_onview())    # ONVIEW
         # Ctrl+E triggers EMER (since the red button has no F-key equivalent)
         self.bind("<Control-e>", lambda e: self._fkey_emergency())
+        # Ctrl+D = Off Duty shortcut
+        self.bind("<Control-d>", lambda e: self._off_duty_pressed())
 
     # ─────────────────────────────────────────
     #  BACKGROUND THREADS
@@ -1248,6 +1275,9 @@ class MDT9100T(tk.Tk):
         raw = self.input_var.get().strip()
         if not raw:
             return
+        # Any typed command cancels a pending Off Duty confirmation
+        if self.off_duty_pending:
+            self._off_duty_cancel()
         cmd = raw.upper()
         self.input_history.insert(0, raw)
         self.hist_idx = -1
@@ -1552,6 +1582,77 @@ class MDT9100T(tk.Tk):
             "CLR W/ F7 WHEN COMPLETE",
         ]
         self._append_message(lines, "bright", False)
+
+    # ─────────────────────────────────────────
+    #  FULLSCREEN TOGGLE
+    # ─────────────────────────────────────────
+    def _escape_pressed(self, event=None):
+        """Escape: exit fullscreen if active, otherwise go to main menu."""
+        if self.attributes("-fullscreen"):
+            self.attributes("-fullscreen", False)
+            self._write("  FULLSCREEN OFF  —  PRESS Escape AGAIN TO RESTORE", "dim")
+        else:
+            self._fkey_main()
+
+    # ─────────────────────────────────────────
+    #  OFF DUTY — SHUTDOWN
+    # ─────────────────────────────────────────
+    def _off_duty_pressed(self):
+        """
+        OFF DUTY button / Ctrl+D handler.
+        If CONFIRM_OFF_DUTY is True: first press arms the button and starts a
+        3-second countdown; a second press within that window confirms shutdown.
+        If CONFIRM_OFF_DUTY is False: exits immediately on first press.
+        """
+        if not CONFIG["CONFIRM_OFF_DUTY"]:
+            self._off_duty_confirm()
+            return
+
+        if self.off_duty_pending:
+            # Second press within the window — confirmed, exit now
+            self._off_duty_confirm()
+        else:
+            # First press — arm the confirmation countdown
+            self.off_duty_pending = True
+            self.off_duty_btn.config(
+                text="CONFIRM?",
+                bg="#552200",
+                fg=P["fg_alert"],
+            )
+            self._write_separator()
+            self._write("  OFF DUTY — PRESS 'OFF DUTY' AGAIN WITHIN 3 SECONDS TO CONFIRM", "alert")
+            self._write("  PRESS ANY OTHER KEY OR WAIT TO CANCEL", "dim")
+            self._write_separator()
+            beep(self)
+            # Auto-cancel after 3 seconds
+            self._off_duty_cancel_id = self.after(3000, self._off_duty_cancel)
+
+    def _off_duty_confirm(self):
+        """Confirmed — broadcast 10-42, set status, then shut down."""
+        if hasattr(self, "_off_duty_cancel_id"):
+            self.after_cancel(self._off_duty_cancel_id)
+        self.off_duty_pending = False
+        ts = datetime.datetime.now().strftime("%H:%M:%S")
+        # Broadcast end of tour
+        self._set_status("10-7", "OUT OF SERVICE", "warn")
+        self._write_separator("═")
+        self._write(f"  *** {CONFIG['UNIT_ID']} — 10-42 END OF TOUR ***", "header")
+        self._write(f"  UNIT {CONFIG['UNIT_ID']} GOING OFF DUTY", "bright")
+        self._write(f"  BEAT: {CONFIG['BEAT']}  |  TIME: {ts}", "normal")
+        self._write("  CAD NOTIFIED — UNIT LOGGED OFF", "dim")
+        self._write_separator("═")
+        self.update()
+        self.after(1800, self.destroy)
+
+    def _off_duty_cancel(self):
+        """Time expired or cancelled — restore the button to normal."""
+        self.off_duty_pending = False
+        self.off_duty_btn.config(
+            text="OFF DUTY",
+            bg=P["bezel_dark"],
+            fg=P["fg_dim"],
+        )
+        self._write("  OFF DUTY CANCELLED", "dim")
 
     # ─────────────────────────────────────────
     #  SHUTDOWN
