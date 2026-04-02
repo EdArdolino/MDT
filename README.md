@@ -1,6 +1,6 @@
 # Motorola MDT 9100-T — Mobile Data Terminal Emulator
 
-> **A software emulator of the Motorola MDT 9100-T police Mobile Data Terminal, built for the Saugus Police Department's restored 1986 Ford Crown Victoria LTD — Car 12, Northwest Beat.**
+> **A software emulator of the Motorola MDT 9100-T police Mobile Data Terminal, built for the Saugus Police Department's restored 1989 Ford Crown Victoria LTD — Car 12, Northwest Beat.**
 
 ![Python](https://img.shields.io/badge/Python-3.7%2B-informational?logo=python&logoColor=white&color=FFB000&labelColor=0D0800)
 ![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%20%7C%20Linux%20%7C%20Windows-informational?color=FFB000&labelColor=0D0800)
@@ -11,7 +11,7 @@
 
 ## Overview
 
-This project emulates the **Motorola MDT 9100-T**, the mobile data terminal widely deployed in police cruisers throughout the 1980s and early 1990s. It was built as part of a full restoration of a **1986 Ford Crown Victoria LTD** for the **Saugus Police Department** in Saugus, Massachusetts.
+This project emulates the **Motorola MDT 9100-T**, the mobile data terminal widely deployed in police cruisers throughout the 1980s and early 1990s. It was built as part of a full restoration of a **1989 Ford Crown Victoria LTD** for the **Saugus Police Department** in Saugus, Massachusetts.
 
 The restored cruiser is designated **Car 12**, patrolling the **Northwest Beat** — covering Lynn Fells Parkway, Penobscot Road, Mountview Road, the Oaklandvale neighborhood, and the Breakheart Reservation area.
 
@@ -283,7 +283,7 @@ All Saugus units reference these Route 1 landmarks in dispatch calls:
 
 ## Simulated NCIC Data
 
-All vehicle, plate, and person records are entirely fictional and set in the North Shore / Greater Boston area circa 1986.
+All vehicle, plate, and person records are entirely fictional and set in the North Shore / Greater Boston area circa 1989.
 
 ### Plate Records
 
@@ -315,7 +315,7 @@ All vehicle, plate, and person records are entirely fictional and set in the Nor
 
 ## Recommended In-Car Hardware
 
-Designed for the 1986 Crown Victoria LTD restoration but works in any vehicle:
+Designed for the 1989 Crown Victoria LTD restoration but works in any vehicle:
 
 | Component | Recommendation | Approx. Cost |
 |---|---|---|
@@ -343,7 +343,7 @@ mdt9100t/
 
 ## Project Background
 
-This emulator was built to complete a full restoration of a **1986 Ford Crown Victoria LTD** for the **Saugus Police Department**. The original Motorola MDT 9100-T hardware is no longer available, so this Python application running on a Raspberry Pi fills that role — preserving the authentic look and operational workflow of a 1980s police cruiser's mobile data terminal.
+This emulator was built to complete a full restoration of a **1989 Ford Crown Victoria LTD** for the **Saugus Police Department**. The original Motorola MDT 9100-T hardware is no longer available, so this Python application running on a Raspberry Pi fills that role — preserving the authentic look and operational workflow of a 1980s police cruiser's mobile data terminal.
 
 The cruiser, **Car 12**, is assigned to the Northwest Beat covering the Lynn Fells Parkway corridor, Oaklandvale, and the Breakheart Reservation area — the same geography simulated in the emulator's dispatch calls and demo scenario.
 

@@ -4,7 +4,7 @@
   MOTOROLA MDT 9100-T  —  MOBILE DATA TERMINAL EMULATOR
   Saugus Police Department  |  Unit Emulator v1.0
   
-  For use with 1986 Ford Crown Victoria LTD Restoration
+  For use with 1989 Ford Crown Victoria LTD Restoration
   Compatible with: Raspberry Pi (Linux) / Windows PC
   Requires: Python 3.7+  |  No external dependencies
 ============================================================
@@ -230,7 +230,7 @@ CROSS_STREETS = [
     "N/O CLIFTONDALE SQ",      "S/O SAUGUS CTR",          "E/O IRON WORKS RD",
 ]
 
-# Saugus PD unit designations (1986 era) — CAR-12 is northwest beat
+# Saugus PD unit designations (1989 era) — CAR-12 is northwest beat
 OFFICERS = [
     "CAR-1", "CAR-3", "CAR-5", "CAR-7", "CAR-9",
     "CAR-11", "CAR-14", "CAR-17", "CAR-21",
@@ -239,11 +239,11 @@ OFFICERS = [
     CONFIG["UNIT_ID"],
 ]
 
-# Simulated plate/vehicle data — Saugus MA & North Shore area, 1986
+# Simulated plate/vehicle data — Saugus MA & North Shore area, 1989
 PLATE_DATA = [
     # Clean record — Saugus resident, Central St
     {"plate":"2GHF847","state":"MA","year":"1983","make":"FORD","model":"LTD CROWN VIC","color":"BLK",
-     "reg":"VALID","reg_exp":"11/87","vin":"1FABP43F3GZ187241",
+     "reg":"VALID","reg_exp":"11/90","vin":"1FABP43F3GZ187241",
      "owner":"CARAVIELLO, PAUL D","addr":"114 CENTRAL ST, SAUGUS MA 01906",
      "dob":"08/22/1949","dl":"C448821563","wants":"NONE","stolen":"NO"},
 
@@ -255,31 +255,31 @@ PLATE_DATA = [
 
     # Warrant hit — Revere resident, Dodge
     {"plate":"7FPL219","state":"MA","year":"1984","make":"DODGE","model":"DIPLOMAT","color":"GRY",
-     "reg":"VALID","reg_exp":"09/87","vin":"1B3BJ46D8EG440019",
+     "reg":"VALID","reg_exp":"09/92","vin":"1B3BJ46D8EG440019",
      "owner":"GIANFRANCESCO, ANTHONY R","addr":"23 PROSPECT AVE, REVERE MA 02151",
      "dob":"11/05/1955","dl":"G228844917","wants":"DEFAULT WARRANT - LYNN DIST COURT","stolen":"NO"},
 
     # Stolen vehicle — Saugus Lynnhurst neighborhood
     {"plate":"4TMB663","state":"MA","year":"1979","make":"FORD","model":"THUNDERBIRD","color":"RED",
-     "reg":"VALID","reg_exp":"06/87","vin":"9A93H813889204411",
+     "reg":"VALID","reg_exp":"06/91","vin":"9A93H813889204411",
      "owner":"PELLEGRINO, ROSEMARIE","addr":"88 BRISTOW ST, SAUGUS MA 01906",
-     "dob":"05/30/1961","dl":"P114508839","wants":"NONE","stolen":"YES - RPT 86-07741 SPD"},
+     "dob":"05/30/1961","dl":"P114508839","wants":"NONE","stolen":"YES - RPT 89-07741 SPD"},
 
     # NH resident at the Hilltop — Plymouth Gran Fury (cop car)
     {"plate":"CBJ447","state":"NH","year":"1985","make":"PLYMOUTH","model":"GRAN FURY","color":"WHT",
-     "reg":"VALID","reg_exp":"12/86","vin":"1P4PL4GJ5FF308892",
+     "reg":"VALID","reg_exp":"12/91","vin":"1P4PL4GJ5FF308892",
      "owner":"BEAUMONT, RICHARD L","addr":"19 BROCK ST, MANCHESTER NH 03101",
      "dob":"07/04/1952","dl":"B551023677","wants":"NONE","stolen":"NO"},
 
     # Suspended reg — Malden resident, Buick
     {"plate":"8LWQ314","state":"MA","year":"1982","make":"BUICK","model":"LESABRE","color":"SLV",
-     "reg":"SUSPENDED","reg_exp":"01/87","vin":"4G4AH47H2CH330124",
+     "reg":"SUSPENDED","reg_exp":"01/92","vin":"4G4AH47H2CH330124",
      "owner":"SHURTLEFF, DENNIS P","addr":"206 FERRY ST, MALDEN MA 02148",
      "dob":"09/18/1963","dl":"S770349102","wants":"NONE","stolen":"NO"},
 
     # Wakefield resident, clean record, AMC
     {"plate":"3QVZ881","state":"MA","year":"1981","make":"AMC","model":"CONCORD","color":"BRN",
-     "reg":"VALID","reg_exp":"03/87","vin":"A1C79B7122893",
+     "reg":"VALID","reg_exp":"03/92","vin":"A1C79B7122893",
      "owner":"MCDONOUGH, PATRICIA A","addr":"7 CHESTNUT ST, WAKEFIELD MA 01880",
      "dob":"12/01/1960","dl":"M885512047","wants":"NONE","stolen":"NO"},
 
@@ -290,7 +290,7 @@ PLATE_DATA = [
      "dob":"06/15/1958","dl":"N662017340","wants":"PROBATION WARRANT - ESSEX SUPERIOR","stolen":"NO"},
 ]
 
-# Simulated person/DL data — North Shore MA, 1986
+# Simulated person/DL data — North Shore MA, 1989
 LOCATION_NOTES = [
     # Northwest Saugus beat (CAR-12 primary area)
     "BREAKHEART RESERVATION ENTRANCE / LYNN FELLS PKWY",
@@ -327,7 +327,7 @@ LOCATION_NOTES = [
 DEMO_PLATE = {
     "plate":"5RVW441","state":"MA","year":"1978","make":"FORD",
     "model":"ECONOLINE VAN","color":"DRK GRN",
-    "reg":"VALID","reg_exp":"08/87","vin":"F10HRV74714",
+    "reg":"VALID","reg_exp":"08/91","vin":"F10HRV74714",
     "owner":"MORIARTY, KEVIN P","addr":"77 MOUNTVIEW RD, SAUGUS MA 01906",
     "dob":"02/09/1953","dl":"M774409821",
     "wants":"DEFAULT WARRANT - ESSEX SUPERIOR CT / A&B DW",
@@ -336,7 +336,7 @@ DEMO_PLATE = {
 DEMO_PERSON = {
     "name":"MORIARTY, KEVIN PAUL","dob":"02/09/1953",
     "race":"W","sex":"M","ht":"600","wt":"215","eyes":"BLU","hair":"BRN",
-    "dl":"M774409821","dl_state":"MA","dl_class":"3","dl_exp":"02/87",
+    "dl":"M774409821","dl_state":"MA","dl_class":"3","dl_exp":"02/92",
     "dl_status":"EXPIRED",
     "wants":"DEFAULT WARRANT - ESSEX SUPERIOR CT  /  A&B WITH DANGEROUS WEAPON (1985)",
     "priors":"4 - A&B (1979), DISORDERLY (1981), A&B DW (1985), OUI LIQUOR (1983)",
@@ -355,7 +355,7 @@ DEMO_STEPS = [
     # ── Step 1: Dispatch receives a call and assigns CAR-12 ──────────
     (0, "dispatch", [
         f"*** DISPATCH - ASSIGNMENT FOR {CONFIG['UNIT_ID']} ***",
-        "INCIDENT: 86-14872",
+        "INCIDENT: 89-14872",
         "CALL TYPE: SUSVC - SUSPICIOUS VEHICLE",
         "PRIORITY: PRIORITY 2 - URGENT",
         "LOCATION: LYNN FELLS PKWY @ PENOBSCOT RD",
@@ -368,13 +368,13 @@ DEMO_STEPS = [
     (3500, "status", ("10-76", "EN ROUTE", "ok")),
     (500,  "outmsg", [
         f"*** {CONFIG['UNIT_ID']} TO DISPATCH ***",
-        "10-4 ON INCIDENT 86-14872",
+        "10-4 ON INCIDENT 89-14872",
         "10-76 LYNN FELLS PKWY / PENOBSCOT",
         "ETA APPROX 3 MIN",
     ]),
     # ── Step 3: Dispatch sends supplemental info ─────────────────────
     (4000, "inmsg", [
-        "*** DISPATCH SUPPLEMENTAL - INCIDENT 86-14872 ***",
+        "*** DISPATCH SUPPLEMENTAL - INCIDENT 89-14872 ***",
         "ADDITIONAL CALLER INFO:",
         "VEH IS DRK GRN FORD VAN - OCC APPEARS SLUMPED",
         "POSSIBLE MEDICAL OR INTOXICATION",
@@ -421,7 +421,7 @@ DEMO_STEPS = [
     # ── Step 10: Unit clears, back in service ───────────────────────
     (5000, "status", ("10-98", "AVAILABLE / CLEAR", "ok")),
     (500,  "inmsg", [
-        "*** DISPATCH - INCIDENT 86-14872 CLOSED ***",
+        "*** DISPATCH - INCIDENT 89-14872 CLOSED ***",
         "CAR-12 ASSIGNMENT COMPLETED",
         f"ARREST: MORIARTY, KEVIN P  -  DEFAULT WARRANT",
         "CASE ASSIGNED TO DET-1 CARAVIELLO",
@@ -430,54 +430,54 @@ DEMO_STEPS = [
     (2000, "status", ("10-8", "IN SERVICE", "ok")),
 ]
 
-# Simulated person/DL data — North Shore MA, 1986
+# Simulated person/DL data — North Shore MA, 1989
 PERSON_DATA = [
     # Clean record, Saugus Center resident
     {"name":"CARAVIELLO, PAUL DOMINIC","dob":"08/22/1949",
      "race":"W","sex":"M","ht":"510","wt":"190","eyes":"BRN","hair":"BLK",
-     "dl":"C448821563","dl_state":"MA","dl_class":"3","dl_exp":"08/89",
+     "dl":"C448821563","dl_state":"MA","dl_class":"3","dl_exp":"08/92",
      "dl_status":"VALID","wants":"NONE",
      "priors":"NONE"},
 
     # OUI repeat, Lynn — revoked license
     {"name":"DOHERTY, THOMAS JOSEPH","dob":"06/12/1958",
      "race":"W","sex":"M","ht":"507","wt":"175","eyes":"BLU","hair":"BRN",
-     "dl":"D229910048","dl_state":"MA","dl_class":"3","dl_exp":"06/88",
+     "dl":"D229910048","dl_state":"MA","dl_class":"3","dl_exp":"06/92",
      "dl_status":"REVOKED - OUI REPEAT","wants":"DEFAULT WARRANT - LYNN DIST COURT",
      "priors":"3 - OUI LIQUOR (1981,1983,1985), OPER AFTER REVOC"},
 
     # Clean, Wakefield female resident
     {"name":"MCDONOUGH, PATRICIA ANN","dob":"12/01/1960",
      "race":"W","sex":"F","ht":"504","wt":"125","eyes":"GRN","hair":"BLN",
-     "dl":"M885512047","dl_state":"MA","dl_class":"3","dl_exp":"12/88",
+     "dl":"M885512047","dl_state":"MA","dl_class":"3","dl_exp":"12/92",
      "dl_status":"VALID","wants":"NONE",
      "priors":"NONE"},
 
     # Active warrant, Revere
     {"name":"GIANFRANCESCO, ANTHONY ROBERT","dob":"11/05/1955",
      "race":"W","sex":"M","ht":"511","wt":"210","eyes":"BRN","hair":"BLK",
-     "dl":"G228844917","dl_state":"MA","dl_class":"3","dl_exp":"11/87",
+     "dl":"G228844917","dl_state":"MA","dl_class":"3","dl_exp":"11/91",
      "dl_status":"VALID","wants":"DEFAULT WARRANT - LYNN DIST COURT / OPER UNINSUIRED VEH",
      "priors":"2 - DISORDERLY PERSON (1980), OUI LIQUOR (1984)"},
 
     # Suspended license, Malden
     {"name":"SHURTLEFF, DENNIS PAUL","dob":"09/18/1963",
      "race":"W","sex":"M","ht":"508","wt":"160","eyes":"HZL","hair":"BRN",
-     "dl":"S770349102","dl_state":"MA","dl_class":"3","dl_exp":"09/87",
+     "dl":"S770349102","dl_state":"MA","dl_class":"3","dl_exp":"09/92",
      "dl_status":"SUSPENDED - OUTSTANDING FINES","wants":"NONE",
      "priors":"1 - OPER MV NEGLIGENTLY (1984)"},
 
     # Serious priors, probation warrant, Saugus/East Saugus
     {"name":"NEWHALL, GARY FRANCIS","dob":"06/15/1958",
      "race":"W","sex":"M","ht":"601","wt":"195","eyes":"BLU","hair":"BRN",
-     "dl":"N662017340","dl_state":"MA","dl_class":"3","dl_exp":"06/86",
+     "dl":"N662017340","dl_state":"MA","dl_class":"3","dl_exp":"06/90",
      "dl_status":"EXPIRED","wants":"PROBATION WARRANT - ESSEX SUPERIOR CT",
      "priors":"4 - LARCENY OVER $250 (1979,1982), B&E NIGHTTIME (1983), A&B (1985)"},
 
     # Saugus Iron Works area, Lynnhurst resident
     {"name":"PELLEGRINO, ROSEMARIE LUCIA","dob":"05/30/1961",
      "race":"W","sex":"F","ht":"505","wt":"130","eyes":"BRN","hair":"BLK",
-     "dl":"P114508839","dl_state":"MA","dl_class":"3","dl_exp":"05/89",
+     "dl":"P114508839","dl_state":"MA","dl_class":"3","dl_exp":"05/92",
      "dl_status":"VALID","wants":"NONE",
      "priors":"NONE"},
 ]
@@ -529,7 +529,7 @@ def generate_dispatch_call():
     addr = f"{random.randint(1,999)} {random.choice(STREET_NAMES)}"
     cross = random.choice(CROSS_STREETS)
     unit = random.choice([u for u in OFFICERS if u != CONFIG["UNIT_ID"]])
-    incident = f"86-{random.randint(10000,99999)}"
+    incident = f"89-{random.randint(10000,99999)}"
     pri_str = ["PRIORITY 1 - EMERGENCY","PRIORITY 2 - URGENT","PRIORITY 3 - ROUTINE"][priority-1]
     note = random.choice(LOCATION_NOTES)
     lines = [
@@ -551,7 +551,7 @@ def generate_assignment_for_unit():
     code, desc, priority = call
     addr = f"{random.randint(1,999)} {random.choice(STREET_NAMES)}"
     cross = random.choice(CROSS_STREETS)
-    incident = f"86-{random.randint(10000,99999)}"
+    incident = f"89-{random.randint(10000,99999)}"
     pri_str = ["PRIORITY 1 - EMERGENCY","PRIORITY 2 - URGENT","PRIORITY 3 - ROUTINE"][priority-1]
     lines = [
         f"*** DISPATCH - ASSIGNMENT FOR {CONFIG['UNIT_ID']} ***",
@@ -1415,7 +1415,7 @@ class MDT9100T(tk.Tk):
         self._write("  MOTOROLA MDT 9100-T EMULATOR", "header")
         self._write_separator("═")
         self._write("  Developed for the Saugus Police Department", "normal")
-        self._write("  1986 Ford Crown Victoria LTD Restoration", "normal")
+        self._write("  1989 Ford Crown Victoria LTD Restoration", "normal")
         self._write("  Emulates: Motorola 9100-T MDT Unit Computer", "normal")
         self._write("")
         self._write("  ─── QUICK COMMAND REFERENCE ─────────────────", "dim")
