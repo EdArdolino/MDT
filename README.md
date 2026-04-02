@@ -152,11 +152,75 @@ CONFIG = {
     # to confirm before the program exits. Set False to exit on first press.
     "CONFIRM_OFF_DUTY":  True,
 
+    # Raspberry Pi screen preset — set True for the Hosyond 5" 800×480 DSI display
+    # (or any similar small screen). Automatically enables fullscreen and scales
+    # all fonts, padding, and UI elements to fit the display. Overrides FULLSCREEN,
+    # WINDOW_W, and WINDOW_H.
+    "PI_SCREEN":         False,
+
     # Demo mode
     "DEMO_MODE":         True,            # Auto-run scenario after boot
     "DEMO_DELAY":        5,               # Seconds after boot before demo starts
     "DEMO_STEP_MS":      4000,            # Milliseconds between demo steps
 }
+```
+
+---
+
+## Raspberry Pi Screen Setup (Hosyond 5" 800×480 DSI)
+
+This emulator was designed and tested for the **Hosyond 5-inch IPS MIPI DSI display** (800×480, capacitive touch, driver-free). One config change is all that's needed:
+
+```python
+"PI_SCREEN": True
+```
+
+This single setting:
+- Enables fullscreen automatically (fills the 800×480 display edge-to-edge)
+- Scales all fonts down proportionally (11pt → 8pt, header 12pt → 9pt, etc.)
+- Scales all padding and widget sizes to fit the smaller canvas
+- Keeps the full 12-key function bar, EMER button, and OFF DUTY button visible
+
+### Auto-scaling
+
+The emulator computes a **scale factor** at startup based on the actual screen resolution vs. the reference design (900×640):
+
+```
+scale = min(screen_width / 900, screen_height / 640)
+```
+
+| Display | Resolution | Scale | Fonts (main / header / key) |
+|---|---|---|---|
+| Hosyond 5" DSI *(this screen)* | 800 × 480 | **0.75** | 8pt / 9pt / 7pt |
+| Default window | 900 × 640 | 1.00 | 11pt / 12pt / 9pt |
+| 1080p monitor | 1920 × 1080 | 1.40 *(capped)* | 15pt / 16pt / 12pt |
+
+The scale is clamped between 0.60 and 1.40 so fonts stay readable at any resolution.
+
+### Wiring the DSI display to the Pi
+
+The Hosyond display connects via the **DSI ribbon cable** — no HDMI needed, no drivers to install. Connect the ribbon cable to the Pi's DSI port, power up, and the display is detected automatically by Raspberry Pi OS.
+
+### Recommended `/boot/config.txt` settings
+
+On some Pi models the DSI display may need explicit configuration. Add to `/boot/config.txt` (or `/boot/firmware/config.txt` on Pi 5):
+
+```ini
+# Hosyond 5" 800×480 DSI display
+display_auto_detect=1
+```
+
+If the display isn't detected automatically:
+```ini
+dtoverlay=vc4-kms-dsi-7inch
+```
+
+### Touch input
+
+The capacitive touch layer works as a mouse input with no additional drivers on Raspberry Pi OS. Tap the function key buttons to activate them. For best results with the touch display, set:
+```python
+"PI_SCREEN":    True,
+"DEMO_STEP_MS": 6000,   # Slightly slower demo pace — easier to read on 5"
 ```
 
 ---
