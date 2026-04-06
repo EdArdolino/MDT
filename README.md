@@ -189,13 +189,22 @@ The emulator computes a **scale factor** at startup based on the actual screen r
 scale = min(screen_width / 900, screen_height / 640)
 ```
 
-| Display | Resolution | Scale | Fonts (main / header / key) |
-|---|---|---|---|
-| Hosyond 5" DSI *(this screen)* | 800 × 480 | **0.75** | 8pt / 9pt / 7pt |
-| Default window | 900 × 640 | 1.00 | 11pt / 12pt / 9pt |
-| 1080p monitor | 1920 × 1080 | 1.40 *(capped)* | 15pt / 16pt / 12pt |
+When `scale < 0.85` **compact mode** activates automatically. This is designed specifically for the 5" 800×480 screen and any similarly small display. Compact mode:
 
-The scale is clamped between 0.60 and 1.40 so fonts stay readable at any resolution.
+- Hides the date label and CAD server label (saves ~28px of vertical space)
+- Drops the F-key number labels (F1…F12) above the function buttons (saves ~14px)
+- Hides the mode bar hint text
+- Reduces all padding to the minimum needed for touch targets
+- Shortens button labels that would overflow (`CLR/10-8` → `CLR`, `10-CODE` → `CODES`)
+- Sets screen border to 2px instead of 3px
+
+All fonts are raised to a **readable minimum** regardless of scale — main text is never below 10pt, headers never below 11pt, button labels never below 9pt. At 96 DPI (Pi default), 10pt renders at ~14 device pixels per line — comfortably readable at arm's length.
+
+| Display | Resolution | Scale | Compact | Main font | Header | Key |
+|---|---|---|---|---|---|---|
+| Hosyond 5" DSI *(this screen)* | 800 × 480 | 0.75 | **Yes** | **10pt** | **11pt** | **9pt** |
+| Default window | 900 × 640 | 1.00 | No | 11pt | 12pt | 9pt |
+| 1080p monitor | 1920 × 1080 | 1.40 *(capped)* | No | 15pt | 16pt | 12pt |
 
 ### Wiring the DSI display to the Pi
 

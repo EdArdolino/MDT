@@ -628,6 +628,12 @@ class MDT9100T(tk.Tk):
         self.scale = max(0.60, min(1.40, raw_scale))
         # e.g.  800×480 → scale ≈ 0.75   |   1920×1080 → scale ≈ 1.40 (capped)
 
+        # Compact mode: active on any screen smaller than ~900×640.
+        # Hides non-essential chrome (date, CAD label, F-key number labels,
+        # mode hint) and tightens all padding so the function bar is never
+        # clipped and text fonts stay large enough to read at arm's length.
+        self.compact = self.scale < 0.85
+
         # State
         self.msg_queue       = queue.Queue()
         self.message_log     = []          # (text, tag, timestamp)
@@ -665,13 +671,15 @@ class MDT9100T(tk.Tk):
     # ─────────────────────────────────────────
     #  FONT LOADING  (scale-aware)
     # ─────────────────────────────────────────
-    def _sz(self, base, minimum=6):
+    def _sz(self, base, minimum=9):
         """Return a font size scaled to self.scale, never below minimum."""
         return max(minimum, round(base * self.scale))
 
     def _load_fonts(self):
         # Prefer a monospace font for authentic terminal look.
         # Fonts scale with self.scale so the UI fits any display resolution.
+        # Minimums are set so text stays readable at arm's length on a 5" screen
+        # at the Pi's default 96 DPI (where 1pt ≈ 1.33 device pixels).
         available = list(tkfont.families())
         mono_candidates = [
             "Fixedsys", "Courier New", "Courier", "Lucida Console",
@@ -679,36 +687,50 @@ class MDT9100T(tk.Tk):
             "Consolas", "Monospace",
         ]
         mono = next((f for f in mono_candidates if f in available), "Courier")
-        # Base sizes are tuned for 900×640.  _sz() scales them for the actual display.
-        self.font_main   = tkfont.Font(family=mono, size=self._sz(11, 7), weight="normal")
-        self.font_bold   = tkfont.Font(family=mono, size=self._sz(11, 7), weight="bold")
-        self.font_small  = tkfont.Font(family=mono, size=self._sz(9,  6), weight="normal")
-        self.font_header = tkfont.Font(family=mono, size=self._sz(12, 7), weight="bold")
-        self.font_alert  = tkfont.Font(family=mono, size=self._sz(13, 8), weight="bold")
-        self.font_title  = tkfont.Font(family=mono, size=self._sz(10, 7), weight="bold")
-        self.font_key    = tkfont.Font(family=mono, size=self._sz(9,  6), weight="bold")
+        # Base sizes tuned for 900×640.  _sz() scales for actual display.
+        # Minimum values ensure readability on 800×480 / 96 DPI (e.g. Pi 5" screen).
+        self.font_main   = tkfont.Font(family=mono, size=self._sz(11, 10), weight="normal")
+        self.font_bold   = tkfont.Font(family=mono, size=self._sz(11, 10), weight="bold")
+        self.font_small  = tkfont.Font(family=mono, size=self._sz(9,   9), weight="normal")
+        self.font_header = tkfont.Font(family=mono, size=self._sz(12, 11), weight="bold")
+        self.font_alert  = tkfont.Font(family=mono, size=self._sz(13, 11), weight="bold")
+        self.font_title  = tkfont.Font(family=mono, size=self._sz(10, 10), weight="bold")
+        self.font_key    = tkfont.Font(family=mono, size=self._sz(9,   9), weight="bold")
 
     # ─────────────────────────────────────────
     #  BEZEL (outer frame)  — scale-aware
     # ─────────────────────────────────────────
     def _build_bezel(self):
-        bx = max(4,  round(16 * self.scale))   # bezel horizontal padding
-        by = max(3,  round(12 * self.scale))   # bezel vertical padding
+        # Compact mode uses the tightest possible bezel so screen + kbar fit.
+        if self.compact:
+            bx, by = 4, 2
+        else:
+            bx = max(4,  round(16 * self.scale))
+            by = max(3,  round(12 * self.scale))
         self.bezel = tk.Frame(self, bg=P["bezel"], padx=bx, pady=by)
         self.bezel.pack(fill="both", expand=True)
 
         # ── Top branding / control bar ───────────────────────────────
-        brand_h = max(20, round(28 * self.scale))
+        brand_h = 18 if self.compact else max(22, round(28 * self.scale))
+        brand_pady_b = 2 if self.compact else max(2, round(6 * self.scale))
         brand = tk.Frame(self.bezel, bg=P["bezel_dark"], height=brand_h)
-        brand.pack(fill="x", pady=(0, max(2, round(6 * self.scale))))
+        brand.pack(fill="x", pady=(0, brand_pady_b))
         brand.pack_propagate(False)
 
         tk.Label(brand, text="MOTOROLA",
                  bg=P["bezel_dark"], fg=P["fg_dim"],
-                 font=self.font_key).pack(side="left", padx=max(4, round(10*self.scale)), pady=2)
-        tk.Label(brand, text=f"MDT 9100-T  ●  {CONFIG['AGENCY']}  ●  {CONFIG['TERMINAL_ID']}",
-                 bg=P["bezel_dark"], fg=P["fg_dim"],
-                 font=self.font_small).pack(side="left", padx=4, pady=2)
+                 font=self.font_key).pack(side="left", padx=6, pady=1)
+        if not self.compact:
+            tk.Label(brand,
+                     text=f"MDT 9100-T  ●  {CONFIG['AGENCY']}  ●  {CONFIG['TERMINAL_ID']}",
+                     bg=P["bezel_dark"], fg=P["fg_dim"],
+                     font=self.font_small).pack(side="left", padx=4, pady=1)
+        else:
+            # Compact: just agency + unit — saves width for OFF DUTY button
+            tk.Label(brand,
+                     text=f"MDT 9100-T  ●  {CONFIG['AGENCY']}",
+                     bg=P["bezel_dark"], fg=P["fg_dim"],
+                     font=self.font_small).pack(side="left", padx=4, pady=1)
 
         # ── OFF DUTY button — always visible top-right ───────────────
         self.off_duty_btn = tk.Button(
@@ -719,20 +741,25 @@ class MDT9100T(tk.Tk):
             activebackground="#552200", activeforeground=P["fg_alert"],
             font=self.font_key,
             relief="raised", bd=1,
-            padx=max(4, round(8 * self.scale)), pady=1,
+            padx=5, pady=0,
             cursor="hand2",
         )
-        self.off_duty_btn.pack(side="right", padx=max(4, round(10*self.scale)), pady=2)
+        self.off_duty_btn.pack(side="right", padx=6, pady=1)
 
     # ─────────────────────────────────────────
     #  SCREEN AREA  — scale-aware
     # ─────────────────────────────────────────
     def _build_screen(self):
-        ipx = max(2, round(4 * self.scale))    # inner frame horizontal padding
-        ipy = max(2, round(4 * self.scale))    # inner frame vertical padding
+        # Compact mode uses minimal padding so the function bar is never clipped.
+        if self.compact:
+            ipx, ipy = 2, 1
+            bd = 2
+        else:
+            ipx = max(2, round(4 * self.scale))
+            ipy = max(2, round(4 * self.scale))
+            bd  = 3
 
-        # Outer glow border
-        self.screen_frame = tk.Frame(self.bezel, bg=P["border"], bd=3, relief="sunken")
+        self.screen_frame = tk.Frame(self.bezel, bg=P["border"], bd=bd, relief="sunken")
         self.screen_frame.pack(fill="both", expand=True)
 
         inner = tk.Frame(self.screen_frame, bg=P["bg"], padx=ipx, pady=ipy)
@@ -744,77 +771,91 @@ class MDT9100T(tk.Tk):
 
         self.lbl_agency = tk.Label(hdr, text=CONFIG["AGENCY"],
             bg=P["bg"], fg=P["fg_header"], font=self.font_header, anchor="w")
-        self.lbl_agency.pack(side="left", padx=max(2, round(4*self.scale)))
+        self.lbl_agency.pack(side="left", padx=2)
 
         self.lbl_unit = tk.Label(hdr, text=f"UNIT: {CONFIG['UNIT_ID']}",
             bg=P["bg"], fg=P["fg_bright"], font=self.font_bold, anchor="w")
-        self.lbl_unit.pack(side="left", padx=max(4, round(12*self.scale)))
+        self.lbl_unit.pack(side="left", padx=(4 if self.compact else max(4, round(12*self.scale))))
 
         self.lbl_beat = tk.Label(hdr, text=CONFIG["BEAT"],
             bg=P["bg"], fg=P["fg_dim"], font=self.font_main, anchor="w")
-        self.lbl_beat.pack(side="left", padx=max(2, round(4*self.scale)))
+        self.lbl_beat.pack(side="left", padx=2)
 
         self.lbl_time = tk.Label(hdr, text="00:00:00",
             bg=P["bg"], fg=P["fg_bright"], font=self.font_header, anchor="e")
-        self.lbl_time.pack(side="right", padx=max(2, round(4*self.scale)))
+        self.lbl_time.pack(side="right", padx=2)
 
+        # Date label: hidden in compact mode to save ~14px of vertical space
         self.lbl_date = tk.Label(hdr, text="",
-            bg=P["bg"], fg=P["fg_dim"], font=self.font_main, anchor="e")
-        self.lbl_date.pack(side="right", padx=max(4, round(8*self.scale)))
+            bg=P["bg"], fg=P["fg_dim"], font=self.font_small, anchor="e")
+        if not self.compact:
+            self.lbl_date.pack(side="right", padx=max(4, round(8*self.scale)))
 
         # ── STATUS ROW ──────────────────────────────────
-        tk.Frame(inner, bg=P["border"], height=2).pack(fill="x", pady=(2,0))
+        tk.Frame(inner, bg=P["border"], height=1).pack(fill="x", pady=(1, 0))
 
         stat = tk.Frame(inner, bg=P["bg"])
-        stat.pack(fill="x", pady=(1, max(1, round(4*self.scale))))
+        stat.pack(fill="x", pady=(1, 1))
 
-        tk.Label(stat, text="STATUS:", bg=P["bg"], fg=P["fg_dim"],
-                 font=self.font_small).pack(side="left", padx=max(2,round(4*self.scale)))
+        tk.Label(stat, text="STS:", bg=P["bg"], fg=P["fg_dim"],
+                 font=self.font_small).pack(side="left", padx=(2, 0))
         self.lbl_status_code = tk.Label(stat, text="10-8",
             bg=P["bg"], fg=P["status_ok"], font=self.font_bold)
-        self.lbl_status_code.pack(side="left")
+        self.lbl_status_code.pack(side="left", padx=(2, 0))
         self.lbl_status_text = tk.Label(stat, text="IN SERVICE",
             bg=P["bg"], fg=P["status_ok"], font=self.font_bold)
-        self.lbl_status_text.pack(side="left", padx=max(3, round(8*self.scale)))
+        self.lbl_status_text.pack(side="left", padx=(4, 0))
 
-        self.lbl_channel = tk.Label(stat, text=f"{CONFIG['CHANNEL']}  {CONFIG['FREQ']}MHz",
-            bg=P["bg"], fg=P["fg_dim"], font=self.font_small)
-        self.lbl_channel.pack(side="left", padx=max(4, round(16*self.scale)))
+        if not self.compact:
+            self.lbl_channel = tk.Label(stat,
+                text=f"{CONFIG['CHANNEL']}  {CONFIG['FREQ']}MHz",
+                bg=P["bg"], fg=P["fg_dim"], font=self.font_small)
+            self.lbl_channel.pack(side="left", padx=max(4, round(16*self.scale)))
+        else:
+            self.lbl_channel = tk.Label(stat,
+                text=f"{CONFIG['FREQ']}MHz",
+                bg=P["bg"], fg=P["fg_dim"], font=self.font_small)
+            self.lbl_channel.pack(side="left", padx=6)
 
-        self.lbl_signal = tk.Label(stat, text="◆◆◆◆◇  SIG",
+        self.lbl_signal = tk.Label(stat, text="◆◆◆◇  SIG",
             bg=P["bg"], fg=P["fg_dim"], font=self.font_small)
-        self.lbl_signal.pack(side="right", padx=max(2, round(4*self.scale)))
+        self.lbl_signal.pack(side="right", padx=2)
 
         self.lbl_unread = tk.Label(stat, text="",
             bg=P["bg"], fg=P["fg_alert"], font=self.font_bold)
-        self.lbl_unread.pack(side="right", padx=max(3, round(8*self.scale)))
+        self.lbl_unread.pack(side="right", padx=(0, 4))
 
+        # CAD label: hidden in compact mode
         self.lbl_cad = tk.Label(stat, text=f"CAD: {CONFIG['CAD_SERVER']} ●ON",
             bg=P["bg"], fg=P["fg_dim"], font=self.font_small)
-        self.lbl_cad.pack(side="right", padx=max(3, round(8*self.scale)))
+        if not self.compact:
+            self.lbl_cad.pack(side="right", padx=max(3, round(8*self.scale)))
 
         # ── SEPARATOR ──
         tk.Frame(inner, bg=P["border"], height=1).pack(fill="x")
 
         # ── MODE INDICATOR BAR ──────────────────────────
-        mode_h = max(14, round(20 * self.scale))
+        # In compact mode: thinner bar, no hint text (saves ~14px)
+        mode_h = 14 if self.compact else max(16, round(20 * self.scale))
         self.mode_bar = tk.Frame(inner, bg=P["key_bg"], height=mode_h)
         self.mode_bar.pack(fill="x")
         self.mode_bar.pack_propagate(False)
         self.lbl_mode = tk.Label(self.mode_bar,
             text="◀  MAIN MENU  ▶", bg=P["key_bg"], fg=P["fg_header"],
-            font=self.font_title)
-        self.lbl_mode.pack(side="left", padx=max(3, round(8*self.scale)))
+            font=self.font_small if self.compact else self.font_title)
+        self.lbl_mode.pack(side="left", padx=4)
+        # Hint label shown only in full mode (too wide and not critical in-car)
         self.lbl_mode_hint = tk.Label(self.mode_bar,
             text="TYPE COMMAND OR F-KEY", bg=P["key_bg"], fg=P["fg_dim"],
             font=self.font_small)
-        self.lbl_mode_hint.pack(side="right", padx=max(3, round(8*self.scale)))
+        if not self.compact:
+            self.lbl_mode_hint.pack(side="right", padx=max(3, round(8*self.scale)))
 
         # ── MAIN MESSAGE / DISPLAY AREA ──────────────────
         txt_frame = tk.Frame(inner, bg=P["bg"])
-        txt_frame.pack(fill="both", expand=True, pady=(2,0))
+        txt_frame.pack(fill="both", expand=True, pady=(1, 0))
 
-        sp = max(1, round(2 * self.scale))    # line spacing scales with display
+        sp = 1 if self.compact else max(1, round(2 * self.scale))
         self.txt = tk.Text(txt_frame,
             bg=P["bg"], fg=P["fg"],
             font=self.font_main,
@@ -836,19 +877,18 @@ class MDT9100T(tk.Tk):
         sb.pack(side="right", fill="y")
         self.txt.configure(yscrollcommand=sb.set)
 
-        # Configure text tags
         self._setup_text_tags()
 
         # ── INPUT ROW ────────────────────────────────────
-        tk.Frame(inner, bg=P["border"], height=1).pack(fill="x", pady=(2,0))
+        tk.Frame(inner, bg=P["border"], height=1).pack(fill="x", pady=(1, 0))
 
-        inp_frame = tk.Frame(inner, bg=P["input_bg"],
-                             pady=max(1, round(3*self.scale)))
+        inp_pady = 1 if self.compact else max(1, round(3 * self.scale))
+        inp_frame = tk.Frame(inner, bg=P["input_bg"], pady=inp_pady)
         inp_frame.pack(fill="x")
 
         self.lbl_prompt = tk.Label(inp_frame, text="CMD>",
             bg=P["input_bg"], fg=P["fg_header"], font=self.font_bold)
-        self.lbl_prompt.pack(side="left", padx=(max(3,round(6*self.scale)), 2))
+        self.lbl_prompt.pack(side="left", padx=(4, 2))
 
         self.input_var = tk.StringVar()
         self.entry = tk.Entry(inp_frame,
@@ -858,7 +898,7 @@ class MDT9100T(tk.Tk):
             font=self.font_bold,
             relief="flat", bd=0,
         )
-        self.entry.pack(side="left", fill="x", expand=True, padx=4)
+        self.entry.pack(side="left", fill="x", expand=True, padx=2)
         self.entry.focus_set()
 
         self.lbl_cursor_blink = tk.Label(inp_frame, text="█",
@@ -870,36 +910,50 @@ class MDT9100T(tk.Tk):
     #  Labels match the real MDT 9100-T hardware.  Scale-aware.
     # ─────────────────────────────────────────
     def _build_keyboard_bar(self):
-        kpy   = max(2, round(6  * self.scale))
-        cpx   = max(1, round(2  * self.scale))   # col padx
-        bpx   = max(2, round(3  * self.scale))   # button padx
-        bpy   = max(1, round(2  * self.scale))   # button pady
+        if self.compact:
+            kpy, cpx, bpx, bpy = 2, 1, 2, 1
+            kbar_top_pady = 2
+        else:
+            kpy  = max(2, round(6 * self.scale))
+            cpx  = max(1, round(2 * self.scale))
+            bpx  = max(2, round(3 * self.scale))
+            bpy  = max(1, round(2 * self.scale))
+            kbar_top_pady = max(2, round(6 * self.scale))
 
         kbar = tk.Frame(self.bezel, bg=P["bezel_dark"], pady=kpy)
-        kbar.pack(fill="x", pady=(max(2, round(6*self.scale)), 0))
+        kbar.pack(fill="x", pady=(kbar_top_pady, 0))
 
-        # Real hardware key labels from Motorola MDT 9100-T (matched from unit photo)
+        # In compact mode the F-key number labels (F1, F2 …) above each button
+        # are hidden — they save ~12px of vertical space that's critical on 480px.
+        # Users can still see which F-key maps to which function in the README.
+        show_fkey_labels = not self.compact
+
+        # Compact mode uses shorter button text for the one label that would overflow
+        clr_label  = "CLR"     if self.compact else "CLR/10-8"
+        code_label = "CODES"   if self.compact else "10-CODE"
+
         self.fkey_defs = [
-            ("F1",  "ACK",      self._fkey_ack),
-            ("F2",  "MSGS",     self._fkey_messages),
-            ("F3",  "SCENE",    lambda: self._set_status("10-97","ON SCENE","warn")),
-            ("F4",  "10-CODE",  self._fkey_tencodes),
-            ("F5",  "OUTSVC",   lambda: self._set_status("10-7","OUT OF SERVICE","warn")),
-            ("F6",  "TRNSPT",   lambda: self._set_status("10-76","EN ROUTE","ok")),
-            ("F7",  "CLR/10-8", lambda: self._set_status("10-8","IN SERVICE","ok")),
-            ("F8",  "VEH",      self._fkey_plate),
-            ("F9",  "PERSON",   self._fkey_person),
-            ("F10", "CLEAR",    self._fkey_clear),
-            ("F11", "T-STOP",   self._fkey_tstop),
-            ("F12", "ONVIEW",   self._fkey_onview),
+            ("F1",  "ACK",         self._fkey_ack),
+            ("F2",  "MSGS",        self._fkey_messages),
+            ("F3",  "SCENE",       lambda: self._set_status("10-97","ON SCENE","warn")),
+            ("F4",  code_label,    self._fkey_tencodes),
+            ("F5",  "OUTSVC",      lambda: self._set_status("10-7","OUT OF SERVICE","warn")),
+            ("F6",  "TRNSPT",      lambda: self._set_status("10-76","EN ROUTE","ok")),
+            ("F7",  clr_label,     lambda: self._set_status("10-8","IN SERVICE","ok")),
+            ("F8",  "VEH",         self._fkey_plate),
+            ("F9",  "PERSON",      self._fkey_person),
+            ("F10", "CLEAR",       self._fkey_clear),
+            ("F11", "T-STOP",      self._fkey_tstop),
+            ("F12", "ONVIEW",      self._fkey_onview),
         ]
         self.fkey_btns = []
         for label, desc, cmd in self.fkey_defs:
             col = tk.Frame(kbar, bg=P["bezel_dark"])
             col.pack(side="left", padx=cpx)
-            tk.Label(col, text=label,
-                     bg=P["bezel_dark"], fg=P["fg_dim"], font=self.font_small
-                     ).pack()
+            if show_fkey_labels:
+                tk.Label(col, text=label,
+                         bg=P["bezel_dark"], fg=P["fg_dim"],
+                         font=self.font_small).pack()
             btn = tk.Button(col, text=desc, command=cmd,
                 bg=P["key_bg"], fg=P["key_fg"],
                 activebackground=P["key_active"], activeforeground=P["bg"],
@@ -910,18 +964,20 @@ class MDT9100T(tk.Tk):
             btn.pack()
             self.fkey_btns.append(btn)
 
-        # EMER button — red physical button on real hardware (right side)
+        # EMER button — matches the red physical button on real hardware
         tk.Frame(kbar, bg=P["bezel_dark"]).pack(side="left", expand=True)
         em_col = tk.Frame(kbar, bg=P["bezel_dark"])
-        em_col.pack(side="right", padx=max(3, round(8*self.scale)))
-        tk.Label(em_col, text="EMER",
-                 bg=P["bezel_dark"], fg=P["fg_alert"], font=self.font_small).pack()
-        tk.Button(em_col, text="10-33",
+        em_col.pack(side="right", padx=max(3, round(6 * self.scale)))
+        if show_fkey_labels:
+            tk.Label(em_col, text="EMER",
+                     bg=P["bezel_dark"], fg=P["fg_alert"],
+                     font=self.font_small).pack()
+        tk.Button(em_col, text="EMER" if self.compact else "10-33",
             command=self._fkey_emergency,
             bg="#CC0000", fg="white",
             activebackground="#FF2200", activeforeground="white",
             font=self.font_key, relief="raised", bd=2,
-            padx=max(4, round(8*self.scale)), pady=bpy,
+            padx=bpx + 2, pady=bpy,
             cursor="hand2",
         ).pack()
 
@@ -984,6 +1040,8 @@ class MDT9100T(tk.Tk):
     def _clock_tick(self):
         now = datetime.datetime.now()
         self.lbl_time.config(text=now.strftime("%H:%M:%S"))
+        # In compact mode the date label is not packed; update it anyway
+        # so if the window is later resized it stays accurate.
         self.lbl_date.config(text=now.strftime("%a %m/%d/%Y"))
         self.after(1000, self._clock_tick)
 
