@@ -12,15 +12,10 @@
 
 import tkinter as tk
 from tkinter import font as tkfont
-import threading
-import time
 import random
 import datetime
-import json
-import os
 import sys
 import queue
-import math
 
 # ─────────────────────────────────────────────
 #  CONFIGURATION  (Edit to match your unit)
@@ -42,8 +37,6 @@ CONFIG = {
     "FULLSCREEN":   False,
     "WINDOW_W":     900,                 # Window width  (ignored in fullscreen)
     "WINDOW_H":     640,                 # Window height (ignored in fullscreen)
-    "SCANLINES":    True,
-    "CRT_EFFECT":   True,
     "SOUND":        True,
     # ── Off Duty / shutdown ─────────────────────────────────────────────
     # When True, the OFF DUTY button requires a second press within 3 seconds
@@ -80,8 +73,6 @@ PALETTES = {
         "fg_ok":       "#FFCC44",
         "fg_header":   "#FF8800",
         "cursor":      "#FFB000",
-        "scanline":    "#0D0800",
-        "glow":        "#FF990055",
         "border":      "#3A2800",
         "key_bg":      "#1A1000",
         "key_fg":      "#FFB000",
@@ -102,8 +93,6 @@ PALETTES = {
         "fg_ok":       "#00FF66",
         "fg_header":   "#00FF44",
         "cursor":      "#00CC44",
-        "scanline":    "#000D00",
-        "glow":        "#00CC4455",
         "border":      "#003311",
         "key_bg":      "#001A00",
         "key_fg":      "#00CC44",
@@ -558,7 +547,6 @@ def format_person_response(data):
 def generate_dispatch_call():
     call = random.choice(CALL_TYPES)
     code, desc, priority = call
-    num = random.randint(100, 9999)
     addr = f"{random.randint(1,999)} {random.choice(STREET_NAMES)}"
     cross = random.choice(CROSS_STREETS)
     unit = random.choice([u for u in OFFICERS if u != CONFIG["UNIT_ID"]])
@@ -602,7 +590,7 @@ def generate_assignment_for_unit():
 # ─────────────────────────────────────────────
 #  SOUND  (cross-platform bell via tkinter)
 # ─────────────────────────────────────────────
-def beep(root, freq=880, duration=100):
+def beep(root):
     if not CONFIG["SOUND"]:
         return
     try:
@@ -655,15 +643,11 @@ class MDT9100T(tk.Tk):
 
         # State
         self.msg_queue       = queue.Queue()
-        self.message_log     = []          # (text, tag, timestamp)
         self.current_status  = ("10-8", "IN SERVICE", "ok")
         self.current_mode    = "MAIN"      # MAIN, QUERY_PLATE, QUERY_PERSON, STATUS, MESSAGES, HELP
-        self.query_buffer    = ""
         self.blink_state     = True
         self.pending_ack     = False
-        self.last_incident   = None
         self.boot_done       = False
-        self.scan_offset     = 0
         self.input_history   = []
         self.hist_idx        = -1
         self.unread_count    = 0
@@ -1302,12 +1286,11 @@ class MDT9100T(tk.Tk):
         self._write(f"  CURRENT STATUS: {code} - {txt}", "bright" if lvl == "ok" else "warn")
         self._write("")
         self._write("  ┌──────────────────────────────────────────────┐", "dim")
-        self._write("  │  F1  MESSAGES          F2  PLATE QUERY       │", "normal")
-        self._write("  │  F3  PERSON/DL QUERY   F4  10-CODES REF      │", "normal")
-        self._write("  │  F5  CHANGE STATUS     F6  SET 10-8 CLEAR    │", "normal")
-        self._write("  │  F7  SET 10-97 SCENE   F8  SET 10-76 EN RT   │", "normal")
-        self._write("  │  F9  MAIN MENU         F10 CLEAR SCREEN      │", "normal")
-        self._write("  │  F12 / EMERG BUTTON    EMERGENCY 10-33       │", "alert")
+        self._write("  │  F1  ACK          F2  MSGS    F3  SCENE      │", "normal")
+        self._write("  │  F4  10-CODES     F5  OUTSVC  F6  TRNSPT     │", "normal")
+        self._write("  │  F7  CLR/10-8     F8  VEH     F9  PERSON     │", "normal")
+        self._write("  │  F10 CLEAR        F11 T-STOP  F12 ONVIEW     │", "normal")
+        self._write("  │  Ctrl+E  EMER / 10-33 EMERGENCY              │", "alert")
         self._write("  └──────────────────────────────────────────────┘", "dim")
         self._write("")
         self._write("  COMMANDS: PLATE [#], PERSON [NAME], STATUS, MSGS", "dim")
