@@ -62,7 +62,7 @@ CONFIG = {
     #   dispatch → officer ACKs → en route → on scene →
     #   plate/person query → warrant hit → clear
     # Set False to disable. Use command DEMO to trigger manually anytime.
-    "DEMO_MODE":    True,
+    "DEMO_MODE":    False,
     "DEMO_DELAY":   5,                   # Seconds after boot before demo starts
     "DEMO_STEP_MS": 4000,               # Milliseconds between demo steps (4 sec default)
 }
@@ -261,6 +261,18 @@ PLATE_DATA = [
      "owner":"CARAVIELLO, PAUL D","addr":"114 CENTRAL ST, SAUGUS MA 01906",
      "dob":"08/22/1949","dl":"C448821563","wants":"NONE","stolen":"NO"},
 
+    # Clean record - Saugus resident, Scott Dr
+    {"plate":"1989","state":"MA","year":"1989","make":"FORD","model":"LTD CROWN VIC","color":"BLK",
+     "reg":"VALID","reg_exp":"11/90","vin":"1FABP43F3GZ187241",
+     "owner":"MONTANO, DOMINIC D","addr":"3 SCOTT DR, SAUGUS MA 01906",
+     "dob":"08/22/1949","dl":"S74835C12","wants":"NONE","stolen":"NO"},
+
+    # Clean record - Batman
+    {"plate":"THEBAT","state":"MA","year":"2015","make":"WAYNE ENTERPRISES","model":"TUMBLER","color":"BLK",
+     "reg":"VALID","reg_exp":"11/15","vin":"1TUMB43F3GZ186969",
+     "owner":"WAYNE, BRUCE D","addr":"THE BATCAVE, GOTHAM",
+     "dob":"02/25/1968","dl":"B4TM4N1569","wants":"NONE","stolen":"NO"},
+
     # Expired reg — Lynn resident, older Chevy
     {"plate":"1RNK492","state":"MA","year":"1980","make":"CHEVY","model":"IMPALA","color":"BLU",
      "reg":"EXPIRED","reg_exp":"04/85","vin":"1G1AL69H0AH204773",
@@ -450,6 +462,13 @@ PERSON_DATA = [
     {"name":"CARAVIELLO, PAUL DOMINIC","dob":"08/22/1949",
      "race":"W","sex":"M","ht":"510","wt":"190","eyes":"BRN","hair":"BLK",
      "dl":"C448821563","dl_state":"MA","dl_class":"3","dl_exp":"08/92",
+     "dl_status":"VALID","wants":"NONE",
+     "priors":"NONE"},
+
+    # Clean record, BATMAN
+    {"name":"WAYNE, BRUCE ","dob":"02/25/1968",
+     "race":"W","sex":"M","ht":"603","wt":"225","eyes":"BRN","hair":"BLK",
+     "dl":"B4TM4N1569","dl_state":"MA","dl_class":"3","dl_exp":"08/25",
      "dl_status":"VALID","wants":"NONE",
      "priors":"NONE"},
 
